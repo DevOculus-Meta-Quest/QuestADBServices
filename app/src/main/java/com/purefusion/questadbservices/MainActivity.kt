@@ -15,7 +15,6 @@ import com.purefusion.questadbservices.ui.theme.QuestADBServicesTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.purefusion.questadbservices.adblib.AndroidBase64
 import com.cgutman.adblib.AdbCrypto
 import java.io.File
 
@@ -29,7 +28,7 @@ class MainActivity : ComponentActivity() {
             val adbUtils = AdbUtils()
             val crypto = adbUtils.readCryptoConfig(filesDir) ?: adbUtils.writeNewCryptoConfig(filesDir)
             if (crypto != null) {
-                startAdbServer()
+                startAdbServer(crypto)
             } else {
                 runOnUiThread {
                     showErrorDialog()
@@ -50,12 +49,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startAdbServer() {
+    private fun startAdbServer(crypto: AdbCrypto) {
         // Your logic to start the ADB server
         // This is a placeholder and should be replaced with actual code to start ADB server
         val host = "localhost"
         val port = 5555
-        val deviceConnection = DeviceConnection(host, port, AdbUtils.readCryptoConfig(filesDir)!!)
+        val deviceConnection = DeviceConnection(host, port, crypto)
         deviceConnection.start()
         Log.d("MainActivity", "ADB server started on $host:$port")
     }
