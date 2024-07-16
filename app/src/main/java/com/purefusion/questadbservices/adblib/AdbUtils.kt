@@ -1,20 +1,21 @@
-package com.purefusion.questadbservices.adblib
+package com.purefusion.questadbservices
 
 import com.cgutman.adblib.AdbCrypto
-import java.io.Closeable
+import com.purefusion.questadbservices.adblib.AndroidBase64
 import java.io.File
-import java.io.IOException
 
-object AdbUtils {
-    const val PRIVATE_KEY_NAME = "private.key"
-    const val PUBLIC_KEY_NAME = "public.key"
+class AdbUtils {
+    companion object {
+        const val PRIVATE_KEY_NAME = "private.key"
+        const val PUBLIC_KEY_NAME = "public.key"
+    }
 
-    fun readCryptoConfig(file: File): AdbCrypto? {
-        val publicKeyFile = File(file, PUBLIC_KEY_NAME)
-        val privateKeyFile = File(file, PRIVATE_KEY_NAME)
-        return if (publicKeyFile.exists() && privateKeyFile.exists()) {
+    fun readCryptoConfig(filesDir: File): AdbCrypto? {
+        val publicKey = File(filesDir, PUBLIC_KEY_NAME)
+        val privateKey = File(filesDir, PRIVATE_KEY_NAME)
+        return if (publicKey.exists() && privateKey.exists()) {
             try {
-                AdbCrypto.loadAdbKeyPair(AndroidBase64(), privateKeyFile, publicKeyFile)
+                AdbCrypto.loadAdbKeyPair(AndroidBase64(), privateKey, publicKey)
             } catch (e: Exception) {
                 null
             }
@@ -23,34 +24,15 @@ object AdbUtils {
         }
     }
 
-    fun writeNewCryptoConfig(file: File): AdbCrypto? {
-        val publicKeyFile = File(file, PUBLIC_KEY_NAME)
-        val privateKeyFile = File(file, PRIVATE_KEY_NAME)
+    fun writeNewCryptoConfig(filesDir: File): AdbCrypto? {
+        val publicKey = File(filesDir, PUBLIC_KEY_NAME)
+        val privateKey = File(filesDir, PRIVATE_KEY_NAME)
         return try {
-            val adbCrypto = AdbCrypto.generateAdbKeyPair(AndroidBase64())
-            adbCrypto.saveAdbKeyPair(privateKeyFile, publicKeyFile)
-            adbCrypto
+            val crypto = AdbCrypto.generateAdbKeyPair(AndroidBase64())
+            crypto.saveAdbKeyPair(privateKey, publicKey)
+            crypto
         } catch (e: Exception) {
             null
         }
-    }
-
-    fun safeClose(closeable: Closeable?): Boolean {
-        return try {
-            closeable?.close()
-            true
-        } catch (e: IOException) {
-            false
-        }
-    }
-
-    fun safeAsyncClose(closeable: Closeable?) {
-        if (closeable == null) return
-        Thread {
-            try {
-                closeable.close()
-            } catch (e: IOException) {
-            }
-        }.start()
     }
 }

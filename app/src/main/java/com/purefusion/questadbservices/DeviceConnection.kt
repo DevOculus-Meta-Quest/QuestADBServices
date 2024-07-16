@@ -1,62 +1,35 @@
 package com.purefusion.questadbservices
 
-import com.purefusion.questadbservices.console.ConsoleBuffer
-import java.io.InputStream
-import java.io.OutputStream
-import java.net.Socket
+import android.util.Log
+import com.cgutman.adblib.AdbBase64
+import com.cgutman.adblib.AdbCrypto
+import com.cgutman.adblib.AdbStream
+import java.net.InetSocketAddress
+import java.nio.channels.SocketChannel
 
-class DeviceConnection(private val host: String, private val port: Int) {
+class DeviceConnection(
+    private val host: String,
+    private val port: Int,
+    private val crypto: AdbCrypto
+) {
 
-    private var socket: Socket? = null
-    private var inputStream: InputStream? = null
-    private var outputStream: OutputStream? = null
-    private val listeners = mutableListOf<DeviceConnectionListener>()
-    val consoleBuffer = ConsoleBuffer(1024) // Adjust buffer size as needed
-
-    fun startConnect() {
-        // Implement connection logic
-        Thread {
-            try {
-                socket = Socket(host, port)
-                inputStream = socket!!.getInputStream()
-                outputStream = socket!!.getOutputStream()
-                listeners.forEach { it.notifyConnectionEstablished(this) }
-                readData()
-            } catch (e: Exception) {
-                listeners.forEach { it.notifyConnectionFailed(this, e) }
-            }
-        }.start()
-    }
-
-    private fun readData() {
-        val buffer = ByteArray(1024)
+    fun start() {
         try {
-            while (true) {
-                val length = inputStream!!.read(buffer)
-                if (length == -1) break
-                consoleBuffer.append(buffer, 0, length)
-                listeners.forEach { it.consoleUpdated(this, consoleBuffer) }
-            }
+            val address = InetSocketAddress(host, port)
+            val channel = SocketChannel.open(address)
+
+            val stream = AdbStream(channel, crypto, AdbBase64.Default)
+            stream.open("shell:vibrant shell")
+
+            // Example command to verify the connection
+            stream.write("echo 'Hello from ADB'\n")
+
+            // Read the response
+            val response = stream.read()
+            Log.d("DeviceConnection", "Received response: $response")
+
         } catch (e: Exception) {
-            listeners.forEach { it.notifyStreamFailed(this, e) }
-        } finally {
-            listeners.forEach { it.notifyStreamClosed(this) }
+            Log.e("DeviceConnection", "Error starting ADB server", e)
         }
-    }
-
-    fun queueCommand(command: String) {
-        outputStream?.write(command.toByteArray())
-    }
-
-    fun queueBytes(bytes: ByteArray) {
-        outputStream?.write(bytes)
-    }
-
-    fun addListener(listener: DeviceConnectionListener) {
-        listeners.add(listener)
-    }
-
-    fun removeListener(listener: DeviceConnectionListener) {
-        listeners.remove(listener)
     }
 }
