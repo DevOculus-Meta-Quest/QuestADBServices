@@ -14,8 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.purefusion.questadbservices.ui.theme.QuestADBServicesTheme
-import com.cgutman.adblib.AdbCrypto
-import com.purefusion.questadbservices.adblib.AndroidBase64
 import com.purefusion.questadbservices.adblib.AdbUtils
 import java.io.File
 
@@ -34,14 +32,14 @@ class MainActivity : ComponentActivity() {
             }
             // Check for existing key and prompt user if not found
             if (AdbUtils.readCryptoConfig(filesDir) == null) {
-                ShowKeyGenerationDialog()
+                ShowKeyGenerationDialog(filesDir)
             }
         }
     }
 }
 
 @Composable
-fun ShowKeyGenerationDialog() {
+fun ShowKeyGenerationDialog(filesDir: File) {
     var showDialog by remember { mutableStateOf(true) }
 
     if (showDialog) {
@@ -54,7 +52,7 @@ fun ShowKeyGenerationDialog() {
                     onClick = {
                         showDialog = false
                         // Generate key pair
-                        AdbUtils.writeNewCryptoConfig(File("/path/to/filesDir")) // Adjust path as necessary
+                        AdbUtils.writeNewCryptoConfig(filesDir)
                     }
                 ) {
                     Text("OK")
