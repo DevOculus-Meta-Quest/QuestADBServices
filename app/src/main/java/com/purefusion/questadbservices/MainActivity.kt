@@ -1,5 +1,6 @@
 package com.purefusion.questadbservices
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -50,12 +51,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startAdbServer(crypto: AdbCrypto) {
-        // Your logic to start the ADB server
-        // This is a placeholder and should be replaced with actual code to start ADB server
         val host = "localhost"
         val port = 5555
-        val deviceConnection = DeviceConnection(host, port, crypto)
-        deviceConnection.start()
+
+        val intent = Intent(this, ShellService::class.java)
+        startService(intent)
+
+        val shellService = ShellService()
+        shellService.startService(host, port, crypto)
         Log.d("MainActivity", "ADB server started on $host:$port")
     }
 
