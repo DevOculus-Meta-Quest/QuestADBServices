@@ -2,23 +2,26 @@ package com.purefusion.questadbservices.console
 
 import android.widget.TextView
 
-class ConsoleBuffer(private val bufferSize: Int) {
-    private var amountPopulated = 0
-    private val buffer = CharArray(bufferSize)
+class ConsoleBuffer(private val size: Int) {
+    private val buffer = CharArray(size)
+    private var length = 0
 
     @Synchronized
-    fun append(data: ByteArray, offset: Int, length: Int) {
-        if (amountPopulated + length > buffer.size) {
-            System.arraycopy(buffer, length, buffer, 0, amountPopulated - length)
-            amountPopulated -= length
+    fun append(data: ByteArray, offset: Int, len: Int) {
+        val appendLen = if (len > size - length) size - length else len
+        for (i in 0 until appendLen) {
+            buffer[length + i] = data[offset + i].toInt().toChar()
         }
-        for (i in 0 until length) {
-            buffer[amountPopulated++] = data[offset + i].toChar()
-        }
+        length += appendLen
     }
 
     @Synchronized
-    fun updateTextView(textView: TextView) {
-        textView.text = String(buffer, 0, amountPopulated)
+    fun clear() {
+        length = 0
+    }
+
+    @Synchronized
+    fun writeTo(textView: TextView) {
+        textView.text = String(buffer, 0, length)
     }
 }
