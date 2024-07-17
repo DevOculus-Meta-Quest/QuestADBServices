@@ -1,26 +1,24 @@
-package com.purefusion.questadbservices
+package com.purefusion.questadbservices.adblib
 
 import com.cgutman.adblib.AdbCrypto
 import java.io.File
 
-object AdbUtils {
+class AdbUtils {
     fun readCryptoConfig(filesDir: File): AdbCrypto? {
-        val privateKey = File(filesDir, "private.key")
-        val publicKey = File(filesDir, "public.key")
-        return if (privateKey.exists() && publicKey.exists()) {
-            AdbCrypto.loadAdbKeyPair(AndroidBase64(), privateKey, publicKey)
+        val keyFile = File(filesDir, "adbkey")
+        val pubFile = File(filesDir, "adbkey.pub")
+        return if (keyFile.exists() && pubFile.exists()) {
+            AdbCrypto.loadAdbKeyPair(AndroidBase64(), keyFile, pubFile)
         } else {
             null
         }
     }
 
     fun writeNewCryptoConfig(filesDir: File): AdbCrypto? {
-        return try {
-            val crypto = AdbCrypto.generateAdbKeyPair(AndroidBase64())
-            crypto.saveAdbKeyPair(File(filesDir, "private.key"), File(filesDir, "public.key"))
-            crypto
-        } catch (e: Exception) {
-            null
-        }
+        val keyFile = File(filesDir, "adbkey")
+        val pubFile = File(filesDir, "adbkey.pub")
+        val crypto = AdbCrypto.generateAdbKeyPair(AndroidBase64())
+        crypto.saveAdbKeyPair(keyFile, pubFile)
+        return crypto
     }
 }
