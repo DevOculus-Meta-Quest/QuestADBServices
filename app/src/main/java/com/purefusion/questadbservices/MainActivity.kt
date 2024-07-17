@@ -20,11 +20,9 @@ import com.cgutman.adblib.AdbCrypto
 import java.io.File
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Start ADB server in a coroutine
         CoroutineScope(Dispatchers.IO).launch {
             val adbUtils = AdbUtils()
             val crypto = adbUtils.readCryptoConfig(filesDir) ?: adbUtils.writeNewCryptoConfig(filesDir)
@@ -37,7 +35,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Show main UI
         setContent {
             QuestADBServicesTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -63,7 +60,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showErrorDialog() {
-        // Your logic to show an error dialog if the certificate generation fails
+        // Show an error dialog if the certificate generation fails
     }
 }
 

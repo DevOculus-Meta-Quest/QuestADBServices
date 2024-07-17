@@ -6,7 +6,6 @@ import android.os.IBinder
 import com.cgutman.adblib.AdbCrypto
 
 class ShellService : Service() {
-
     private lateinit var deviceConnection: DeviceConnection
 
     override fun onBind(intent: Intent?): IBinder? {

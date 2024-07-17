@@ -1,8 +1,8 @@
 package com.purefusion.questadbservices
 
 import android.util.Log
-import com.cgutman.adblib.*
-import java.net.InetSocketAddress
+import com.cgutman.adblib.AdbConnection
+import com.cgutman.adblib.AdbCrypto
 import java.net.Socket
 
 class DeviceConnection(
@@ -10,7 +10,6 @@ class DeviceConnection(
     private val port: Int,
     private val crypto: AdbCrypto
 ) {
-
     fun start() {
         try {
             val socket = Socket(host, port)
@@ -18,14 +17,10 @@ class DeviceConnection(
             adbConnection.connect()
 
             val adbStream = adbConnection.open("shell:vibrant shell")
-
-            // Example command to verify the connection
             adbStream.write("echo 'Hello from ADB'\n")
 
-            // Read the response
             val response = adbStream.read()
             Log.d("DeviceConnection", "Received response: $response")
-
         } catch (e: Exception) {
             Log.e("DeviceConnection", "Error starting ADB server", e)
         }
