@@ -12,31 +12,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.purefusion.questadbservices.adblib.AdbUtils
 import com.purefusion.questadbservices.ui.theme.QuestADBServicesTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.cgutman.adblib.AdbCrypto
-import java.io.File
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Start ADB server in a coroutine
-        CoroutineScope(Dispatchers.IO).launch {
-            val adbUtils = AdbUtils()
-            val crypto = adbUtils.readCryptoConfig(filesDir) ?: adbUtils.writeNewCryptoConfig(filesDir)
-            if (crypto != null) {
-                startAdbServer(crypto)
-            } else {
-                runOnUiThread {
-                    showErrorDialog()
-                }
-            }
-        }
+        // Start ShellService to enable ADB over TCP
+        val serviceIntent = Intent(this, ShellService::class.java)
+        startService(serviceIntent)
 
         // Show main UI
         setContent {
@@ -51,35 +39,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startAdbServer(crypto: AdbCrypto) {
-        val host = "localhost"
-        val port = 5555
-
-        val intent = Intent(this, ShellService::class.java)
-        startService(intent)
-
-        val shellService = ShellService()
-        shellService.startService(host, port, crypto)
-        Log.d("MainActivity", "ADB server started on $host:$port")
+    @Composable
+    fun Greeting(name: String, modifier: Modifier = Modifier) {
+        Text(
+            text = "Hello $name!",
+            modifier = modifier
+        )
     }
 
-    private fun showErrorDialog() {
-        // Your logic to show an error dialog if the certificate generation fails
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    QuestADBServicesTheme {
-        Greeting("Android")
+    @Preview(showBackground = true)
+    @Composable
+    fun GreetingPreview() {
+        QuestADBServicesTheme {
+            Greeting("Android")
+        }
     }
 }
