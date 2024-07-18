@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Start ShellService to enable ADB over TCP
+        // Start ShellService to enable ADB over TCP and read the current port
         val serviceIntent = Intent(this, ShellService::class.java)
         startService(serviceIntent)
 
