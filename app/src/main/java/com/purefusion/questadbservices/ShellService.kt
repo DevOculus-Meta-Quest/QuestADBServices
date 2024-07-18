@@ -4,23 +4,24 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import com.cgutman.adblib.AdbCrypto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.File
 
 class ShellService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("ShellService", "Service started")
         CoroutineScope(Dispatchers.IO).launch {
+            val crypto = loadOrGenerateCrypto()
             if (!isAdbWirelessEnabled()) {
                 enableAdbWireless()
             }
             val port = readAdbPort()
             if (port != null) {
-                connectToAdb(port)
+                connectToAdb(port, crypto)
             } else {
                 Log.e("ShellService", "Failed to read ADB port")
             }
@@ -28,10 +29,21 @@ class ShellService : Service() {
         return START_STICKY
     }
 
+    private fun loadOrGenerateCrypto(): AdbCrypto {
+        val cryptoFile = File(filesDir, "adbkey")
+        return if (cryptoFile.exists()) {
+            AdbCrypto.loadAdbKeyPair(com.purefusion.questadbservices.adblib.AndroidBase64(), cryptoFile, File(cryptoFile.absolutePath + ".pub"))
+        } else {
+            val crypto = AdbCrypto.generateAdbKeyPair(com.purefusion.questadbservices.adblib.AndroidBase64())
+            crypto.saveAdbKeyPair(cryptoFile, File(cryptoFile.absolutePath + ".pub"))
+            crypto
+        }
+    }
+
     private fun isAdbWirelessEnabled(): Boolean {
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "getprop service.adb.tcp.port"))
-            val inputStream = BufferedReader(InputStreamReader(process.inputStream))
+            val inputStream = process.inputStream.bufferedReader()
             val port = inputStream.readLine().trim()
             port.isNotEmpty()
         } catch (e: Exception) {
@@ -53,7 +65,7 @@ class ShellService : Service() {
     private fun readAdbPort(): Int? {
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "getprop service.adb.tcp.port"))
-            val inputStream = BufferedReader(InputStreamReader(process.inputStream))
+            val inputStream = process.inputStream.bufferedReader()
             val port = inputStream.readLine().trim()
             port.toIntOrNull()
         } catch (e: Exception) {
@@ -62,9 +74,9 @@ class ShellService : Service() {
         }
     }
 
-    private fun connectToAdb(port: Int) {
+    private fun connectToAdb(port: Int, crypto: AdbCrypto) {
         // Your logic to connect to ADB using the read port and self-signed RSA keys
-        Log.d("ShellService", "Connecting to ADB on port: $port")
+        Log.d("ShellService", "Connecting to ADB on port: $port with crypto: $crypto")
         // Implement the connection logic here
     }
 
