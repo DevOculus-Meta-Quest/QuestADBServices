@@ -5,28 +5,35 @@ import java.io.File
 
 object AdbUtils {
 
-    fun readCryptoConfig(dir: File): AdbCrypto? {
-        return try {
-            val keyFile = File(dir, "adbkey")
-            val pubFile = File(dir, "adbkey.pub")
-            if (keyFile.exists() && pubFile.exists()) {
-                AdbCrypto.load(AndroidBase64(), keyFile, pubFile)
-            } else {
+    private const val ADB_KEY_PATH = "adbkey"
+    private const val ADB_KEY_PUB_PATH = "adbkey.pub"
+
+    fun readCryptoConfig(filesDir: File): AdbCrypto? {
+        val privateKeyFile = File(filesDir, ADB_KEY_PATH)
+        val publicKeyFile = File(filesDir, ADB_KEY_PUB_PATH)
+
+        return if (privateKeyFile.exists() && publicKeyFile.exists()) {
+            try {
+                AdbCrypto.loadAdbKeyPair(AndroidBase64(), privateKeyFile, publicKeyFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
                 null
             }
-        } catch (e: Exception) {
+        } else {
             null
         }
     }
 
-    fun writeNewCryptoConfig(dir: File): AdbCrypto? {
+    fun writeNewCryptoConfig(filesDir: File): AdbCrypto? {
+        val privateKeyFile = File(filesDir, ADB_KEY_PATH)
+        val publicKeyFile = File(filesDir, ADB_KEY_PUB_PATH)
+
         return try {
-            val keyFile = File(dir, "adbkey")
-            val pubFile = File(dir, "adbkey.pub")
             val crypto = AdbCrypto.generateAdbKeyPair(AndroidBase64())
-            crypto.saveAdbKeyPair(keyFile, pubFile)
+            crypto.saveAdbKeyPair(privateKeyFile, publicKeyFile)
             crypto
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
